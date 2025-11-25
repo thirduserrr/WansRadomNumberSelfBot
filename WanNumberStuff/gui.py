@@ -1,19 +1,18 @@
 import tkinter as tk
-from tkinter import ttk, messagebox
-import threading
+from tkinter import ttk, messagebox, colorchooser
 import keyboard
-from typer_logic import typer_loop, running, delay, clear_numbers
+from typer_logic import TyperLogic
 from settings import app_bg, app_fg, btn_bg, btn_fg, choose_bg_color, choose_fg_color, choose_btn_bg_color, choose_btn_fg_color
 
 class WansTyperApp:
     def __init__(self):
+        self.logic = TyperLogic()
         self.root = tk.Tk()
         self.root.title("Wans Number Guessing Bitch ass program")
         self.root.geometry("500x400")
         self.root.configure(bg=app_bg)
         self.setup_gui()
         keyboard.add_hotkey('ctrl+shift+t', self.toggle_running)
-        threading.Thread(target=typer_loop, daemon=True).start()
 
     def setup_gui(self):
         self.tabs = ttk.Notebook(self.root)
@@ -39,7 +38,7 @@ class WansTyperApp:
         self.speed_label = tk.Label(self.main_frame, text="goo brrr", font=("Arial",12), fg=app_fg, bg=app_bg)
         self.speed_label.pack(pady=(15,5))
         self.speed_scale = tk.Scale(self.main_frame, from_=0.3, to=5.0, resolution=0.1, orient="horizontal", command=self.update_speed, bg=app_bg, fg=app_fg, troughcolor="#555555", highlightthickness=0)
-        self.speed_scale.set(delay)
+        self.speed_scale.set(self.logic.delay)
         self.speed_scale.pack(pady=5)
 
         self.bg_btn = tk.Button(self.settings_frame, text="bg color", width=24, command=lambda: choose_bg_color(self.root, self.main_frame, self.settings_frame, self.update_widget_colors))
@@ -73,33 +72,29 @@ class WansTyperApp:
         e.widget.config(bg=btn_bg, fg=btn_fg)
 
     def toggle_running(self):
-        global running
-        running = not running
+        self.logic.toggle()
         self.update_status()
 
     def update_status(self):
-        if running:
+        if self.logic.running:
             self.status_label.config(text="Status: Running", fg=app_fg)
         else:
             self.status_label.config(text="Status: Stopped", fg=app_fg)
 
     def start(self):
-        global running
-        running = True
+        self.logic.running = True
         self.update_status()
 
     def stop(self):
-        global running
-        running = False
+        self.logic.running = False
         self.update_status()
 
     def clear_db(self):
-        clear_numbers()
+        self.logic.clear_numbers()
         self.status_label.config(text="Database cleared!")
 
     def update_speed(self, val):
-        global delay
-        delay = float(val)
+        self.logic.set_delay(val)
 
     def run(self):
         self.root.mainloop()
