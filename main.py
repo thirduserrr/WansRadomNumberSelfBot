@@ -6,7 +6,6 @@ running = False
 delay = 1.3
 typed_count = 0
 json_file = "numbers.json"
-last_mouse_pos = pyautogui.position()
 
 if os.path.exists(json_file):
     with open(json_file, "r") as f:
@@ -27,7 +26,7 @@ user_settings = {
     "sound_on_type": False,
     "visual_flash": False,
     "shuffle_numbers": False,
-    "stop_on_mouse_move": True
+    "stop_on_mouse_move": False  # Disabled
 }
 
 def save_numbers():
@@ -112,17 +111,6 @@ def update_ui_colors():
     for b in buttons:
         b.config(bg=user_settings["btn_bg"], fg=user_settings["btn_fg"], activebackground=user_settings["btn_fg"], activeforeground=user_settings["btn_bg"])
 
-def mouse_monitor():
-    global last_mouse_pos, running
-    while True:
-        time.sleep(0.2)
-        if user_settings["stop_on_mouse_move"]:
-            current_pos = pyautogui.position()
-            if current_pos != last_mouse_pos and running:
-                stop_button()
-                log_numbers("Stopped due to mouse movement")
-            last_mouse_pos = current_pos
-
 def typer_loop():
     while True:
         if running:
@@ -138,7 +126,7 @@ keyboard.add_hotkey('ctrl+shift+t', toggle_running)
 
 root = tk.Tk()
 root.title("GusserV2")
-root.geometry("900x750")
+root.geometry("950x800")
 root.configure(bg=user_settings["bg_color"])
 root.resizable(False, False)
 
@@ -165,21 +153,21 @@ def create_button(parent, text, command=None):
     return btn
 
 title_label = tk.Label(main_frame, text="GusserV2", font=("Arial", 22, "bold"), fg=user_settings["text_color"], bg=user_settings["bg_color"])
-title_label.pack(pady=(10,5))
+title_label.pack(pady=(10,10))
 
 status_text = tk.StringVar(value="Stopped")
 status_label = tk.Label(main_frame, textvariable=status_text, font=("Arial", 14, "bold"), fg=user_settings["text_color"], bg=user_settings["bg_color"])
-status_label.pack(pady=(0,5))
+status_label.pack(pady=(0,10))
 
 typed_counter = tk.StringVar(value=f"Numbers typed: {typed_count}")
 typed_label = tk.Label(main_frame, textvariable=typed_counter, font=("Arial", 12), fg=user_settings["text_color"], bg=user_settings["bg_color"])
-typed_label.pack(pady=(0,5))
+typed_label.pack(pady=(0,10))
 
 log_frame = tk.Frame(main_frame, bg=user_settings["bg_color"])
-log_frame.pack(pady=(5,10), fill="both", expand=False)
+log_frame.pack(pady=(5,15), fill="both", expand=False)
 log_scroll = tk.Scrollbar(log_frame)
 log_scroll.pack(side="right", fill="y")
-log_text = tk.Text(log_frame, height=8, bg="#111111", fg=user_settings["text_color"], state="disabled", yscrollcommand=log_scroll.set, font=("Consolas", 10))
+log_text = tk.Text(log_frame, height=10, bg="#111111", fg=user_settings["text_color"], state="disabled", yscrollcommand=log_scroll.set, font=("Consolas", 10))
 log_text.pack(fill="both", expand=True)
 log_scroll.config(command=log_text.yview)
 
@@ -191,10 +179,10 @@ exit_btn = create_button(main_frame, "Exit", exit_app)
 
 buttons = [start_btn, stop_btn, clear_btn, reset_btn, exit_btn]
 for b in buttons:
-    b.pack(pady=3)
+    b.pack(pady=5, ipadx=10, ipady=5)
 
 speed_label = tk.Label(main_frame, text="Typing Speed", font=("Arial", 12), fg=user_settings["text_color"], bg=user_settings["bg_color"])
-speed_label.pack(pady=(10,2))
+speed_label.pack(pady=(15,5))
 speed_scale = tk.Scale(main_frame, from_=0.1, to=5.0, resolution=0.1, orient="horizontal",
                        command=update_speed, bg=user_settings["bg_color"], fg=user_settings["text_color"], troughcolor="#555555",
                        highlightthickness=0, length=500)
@@ -208,47 +196,41 @@ text_color_btn = create_button(general_frame, "Text Color", lambda: change_color
 btn_bg_btn = create_button(general_frame, "Button Background", lambda: change_color("btn_bg"))
 btn_fg_btn = create_button(general_frame, "Button Text", lambda: change_color("btn_fg"))
 for b in [bg_color_btn, text_color_btn, btn_bg_btn, btn_fg_btn]:
-    b.pack(pady=3)
+    b.pack(pady=5, ipadx=10, ipady=5)
 
 advanced_frame = tk.LabelFrame(settings_frame, text="Advanced Settings", bg="#111111", fg="#ffffff", font=("Arial",12,"bold"))
 advanced_frame.pack(fill="x", pady=5, padx=10)
 
 min_label = tk.Label(advanced_frame, text="Min Number", fg="#ffffff", bg="#111111")
-min_label.pack(pady=2)
+min_label.pack(pady=5)
 min_scale = tk.Scale(advanced_frame, from_=0, to=1000000, orient="horizontal", bg="#111111", fg="#ffffff",
                      troughcolor="#555555", length=400, command=lambda val: user_settings.update({"min_number": int(val)}))
 min_scale.set(user_settings["min_number"])
-min_scale.pack(pady=2)
+min_scale.pack(pady=5)
 
 max_label = tk.Label(advanced_frame, text="Max Number", fg="#ffffff", bg="#111111")
-max_label.pack(pady=2)
+max_label.pack(pady=5)
 max_scale = tk.Scale(advanced_frame, from_=0, to=1000000, orient="horizontal", bg="#111111", fg="#ffffff",
                      troughcolor="#555555", length=400, command=lambda val: user_settings.update({"max_number": int(val)}))
 max_scale.set(user_settings["max_number"])
-max_scale.pack(pady=2)
+max_scale.pack(pady=5)
 
 shuffle_chk = tk.Checkbutton(advanced_frame, text="Shuffle Numbers", fg="#ffffff", bg="#111111", selectcolor="#000000",
                              variable=tk.BooleanVar(value=user_settings["shuffle_numbers"]),
                              command=lambda: user_settings.update({"shuffle_numbers": shuffle_chk.var.get()}))
 shuffle_chk.var = shuffle_chk.cget("variable")
-shuffle_chk.pack(pady=2)
-
-stop_mouse_chk = tk.Checkbutton(advanced_frame, text="Stop on Mouse Move", fg="#ffffff", bg="#111111", selectcolor="#000000",
-                             variable=tk.BooleanVar(value=user_settings["stop_on_mouse_move"]),
-                             command=lambda: user_settings.update({"stop_on_mouse_move": stop_mouse_chk.var.get()}))
-stop_mouse_chk.var = stop_mouse_chk.cget("variable")
-stop_mouse_chk.pack(pady=2)
+shuffle_chk.pack(pady=5)
 
 auto_stop_label = tk.Label(advanced_frame, text="Auto Stop Count (0 = off)", fg="#ffffff", bg="#111111")
-auto_stop_label.pack(pady=2)
+auto_stop_label.pack(pady=5)
 auto_stop_spin = tk.Spinbox(advanced_frame, from_=0, to=100000, width=10, command=lambda: user_settings.update({"auto_stop_count": int(auto_stop_spin.get())}))
 auto_stop_spin.delete(0, "end")
 auto_stop_spin.insert(0, user_settings["auto_stop_count"])
-auto_stop_spin.pack(pady=2)
+auto_stop_spin.pack(pady=5)
 
 coming_label = tk.Label(coming_soon_frame, text="Coming Soon Features:\n- AI Tracking\n- AI Screen View\n- Advanced Auto Mode\n- Real-Time Analytics\n- Smart Predictions\n- Auto Optimized Speed\n- Intelligent Stop Conditions", fg="#ffffff", bg=user_settings["bg_color"], font=("Arial", 14))
 coming_label.pack(pady=50)
 
 threading.Thread(target=typer_loop, daemon=True).start()
-threading.Thread(target=mouse_monitor, daemon=True).start()
 root.mainloop()
+
