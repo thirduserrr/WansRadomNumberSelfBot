@@ -26,7 +26,7 @@ user_settings = {
     "sound_on_type": False,
     "visual_flash": False,
     "shuffle_numbers": False,
-    "stop_on_mouse_move": False  # Disabled
+    "stop_on_mouse_move": False
 }
 
 def save_numbers():
@@ -203,27 +203,38 @@ advanced_frame.pack(fill="x", pady=5, padx=10)
 
 min_label = tk.Label(advanced_frame, text="Min Number", fg="#ffffff", bg="#111111")
 min_label.pack(pady=5)
-min_scale = tk.Scale(advanced_frame, from_=0, to=1000000, orient="horizontal", bg="#111111", fg="#ffffff",
-                     troughcolor="#555555", length=400, command=lambda val: user_settings.update({"min_number": int(val)}))
-min_scale.set(user_settings["min_number"])
-min_scale.pack(pady=5)
+min_entry = tk.Entry(advanced_frame, width=20)
+min_entry.pack(pady=5)
+min_entry.insert(0, str(user_settings["min_number"]))
+def update_min_number(event=None):
+    try:
+        user_settings["min_number"] = int(min_entry.get())
+    except:
+        pass
+min_entry.bind("<KeyRelease>", update_min_number)
 
 max_label = tk.Label(advanced_frame, text="Max Number", fg="#ffffff", bg="#111111")
 max_label.pack(pady=5)
-max_scale = tk.Scale(advanced_frame, from_=0, to=1000000, orient="horizontal", bg="#111111", fg="#ffffff",
-                     troughcolor="#555555", length=400, command=lambda val: user_settings.update({"max_number": int(val)}))
-max_scale.set(user_settings["max_number"])
-max_scale.pack(pady=5)
+max_entry = tk.Entry(advanced_frame, width=20)
+max_entry.pack(pady=5)
+max_entry.insert(0, str(user_settings["max_number"]))
+def update_max_number(event=None):
+    try:
+        user_settings["max_number"] = int(max_entry.get())
+    except:
+        pass
+max_entry.bind("<KeyRelease>", update_max_number)
 
-shuffle_chk = tk.Checkbutton(advanced_frame, text="Shuffle Numbers", fg="#ffffff", bg="#111111", selectcolor="#000000",
-                             variable=tk.BooleanVar(value=user_settings["shuffle_numbers"]),
-                             command=lambda: user_settings.update({"shuffle_numbers": shuffle_chk.var.get()}))
-shuffle_chk.var = shuffle_chk.cget("variable")
+shuffle_var = tk.BooleanVar(value=user_settings["shuffle_numbers"])
+shuffle_chk = tk.Checkbutton(advanced_frame, text="Shuffle Numbers", fg="#ffffff", bg="#111111",
+                             selectcolor="#000000", variable=shuffle_var,
+                             command=lambda: user_settings.update({"shuffle_numbers": shuffle_var.get()}))
 shuffle_chk.pack(pady=5)
 
 auto_stop_label = tk.Label(advanced_frame, text="Auto Stop Count (0 = off)", fg="#ffffff", bg="#111111")
 auto_stop_label.pack(pady=5)
-auto_stop_spin = tk.Spinbox(advanced_frame, from_=0, to=100000, width=10, command=lambda: user_settings.update({"auto_stop_count": int(auto_stop_spin.get())}))
+auto_stop_spin = tk.Spinbox(advanced_frame, from_=0, to=100000, width=10,
+                            command=lambda: user_settings.update({"auto_stop_count": int(auto_stop_spin.get())}))
 auto_stop_spin.delete(0, "end")
 auto_stop_spin.insert(0, user_settings["auto_stop_count"])
 auto_stop_spin.pack(pady=5)
